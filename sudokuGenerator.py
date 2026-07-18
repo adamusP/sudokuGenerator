@@ -170,9 +170,11 @@ class Window:
     def save(self):
         name = self.get_name()
         if name:
+            window.lift()
+            window.focus_force()
             window.update_idletasks()
             window.update()
-            sleep(0.1)
+            sleep(0.35)
 
             x = self.c.winfo_rootx() + self.c.winfo_x() + 5
             y = self.c.winfo_rooty() + self.c.winfo_y()
@@ -180,7 +182,7 @@ class Window:
             y1 = y + self.c.winfo_height()
             save_dir = join(getcwd(), "Saved Sudokus")
             makedirs(save_dir, exist_ok=True)
-            ImageGrab.grab().crop((x, y, x1, y1)).save(join(save_dir, name + ".png"))
+            ImageGrab.grab(bbox=(x, y, x1, y1)).save(join(save_dir, name + ".png"))
 
     def start_solving(self):
         if self.shown:
@@ -274,10 +276,17 @@ class Window:
         filename = self.entry.get().strip()
         if filename:
             self.filename = filename
-            self.w.destroy()
+            self.close_name_dialog()
 
     def cancel_name(self):
         self.filename = None
+        self.close_name_dialog()
+
+    def close_name_dialog(self):
+        self.w.grab_release()
+        self.w.withdraw()
+        window.update_idletasks()
+        window.update()
         self.w.destroy()
 
 
