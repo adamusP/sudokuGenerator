@@ -168,12 +168,16 @@ class Window:
             self.butt["text"] = "SHOW ANSWERS"
 
     def save(self):
-        x = self.c.winfo_rootx() + self.c.winfo_x() + 5
-        y = self.c.winfo_rooty() + self.c.winfo_y()
-        x1 = x + self.c.winfo_width() - 5
-        y1 = y + self.c.winfo_height()
         name = self.get_name()
         if name:
+            window.update_idletasks()
+            window.update()
+            sleep(0.1)
+
+            x = self.c.winfo_rootx() + self.c.winfo_x() + 5
+            y = self.c.winfo_rooty() + self.c.winfo_y()
+            x1 = x + self.c.winfo_width() - 5
+            y1 = y + self.c.winfo_height()
             save_dir = join(getcwd(), "Saved Sudokus")
             makedirs(save_dir, exist_ok=True)
             ImageGrab.grab().crop((x, y, x1, y1)).save(join(save_dir, name + ".png"))
@@ -240,12 +244,15 @@ class Window:
         )
 
     def get_name(self):
-        self.w = tk.Tk()
+        self.w = tk.Toplevel(window)
         self.w.title("")
         self.w.resizable(0, 0)
         self.w.geometry("250x150+450+450")
+        self.w.transient(window)
+        self.w.grab_set()
+        self.w.protocol("WM_DELETE_WINDOW", self.cancel_name)
 
-        self.filename = ""
+        self.filename = None
 
         tk.Label(self.w, text="CHOOSE FILENAME:", font=15).place(
             relx=0.5, rely=0.2, anchor="center"
@@ -256,19 +263,22 @@ class Window:
 
         self.entry = tk.Entry(self.w, textvariable=tk.StringVar(), font=8)
         self.entry.place(relx=0.5, rely=0.5, width=110, height=30, anchor="center")
+        self.entry.focus_set()
+        self.entry.bind("<Return>", lambda _: self.choose())
 
-        while self.filename == "":
-            try:
-                self.w.update()
-            except:
-                return None
-
-        self.w.destroy()
+        window.wait_window(self.w)
 
         return self.filename
 
     def choose(self):
-        self.filename = self.entry.get()
+        filename = self.entry.get().strip()
+        if filename:
+            self.filename = filename
+            self.w.destroy()
+
+    def cancel_name(self):
+        self.filename = None
+        self.w.destroy()
 
 
 if __name__ == "__main__":
